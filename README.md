@@ -1,5 +1,5 @@
 # Python gRPC Chat
-Chat application created with gRPC. This was a study for bidirectional gRPC streaming.
+Aplicativo de bate-papo criado com gRPC. Este foi um estudo para streaming gRPC bidirecional.
 
 # Demo
 
@@ -13,23 +13,23 @@ Chat application created with gRPC. This was a study for bidirectional gRPC stre
 class ChatServer(rpc.ChatServerServicer):
 
     def __init__(self):
-        # List with all the chat history
+        # Lista com todo o histórico do chat
         self.chats = []
 
-    # The stream which will be used to send new messages to clients
+    # O fluxo que será usado para enviar novas mensagens aos clientes
     def ChatStream(self, request_iterator, context):
         """
-        This is a response-stream type call. This means the server can keep sending messages
-        Every client opens this connection and waits for server to send new messages
+        Esta é uma chamada do tipo de fluxo de resposta. Isso significa que o servidor pode continuar enviando mensagens
+        Todo cliente abre essa conexão e espera o servidor enviar novas mensagens
 
         :param request_iterator:
         :param context:
         :return:
         """
         lastindex = 0
-        # For every client a infinite loop starts (in gRPC's own managed thread)
+        # Para cada cliente, um loop infinito é iniciado (no próprio thread gerenciado do gRPC)
         while True:
-            # Check if there are any new messages
+            # Verifique se há novas mensagens
             while len(self.chats) > lastindex:
                 n = self.chats[lastindex]
                 lastindex += 1
@@ -37,14 +37,14 @@ class ChatServer(rpc.ChatServerServicer):
 
     def SendNote(self, request: chat.Note, context):
         """
-        This method is called when a clients sends a Note to the server.
+        Este método é chamado quando um cliente envia uma Nota para o servidor.
 
         :param request:
         :param context:
         :return:
         """
         print("[{}] {}".format(request.name, request.message))
-        # Add it to the chat history
+        # Adicione-o ao histórico de bate-papo
         self.chats.append(request)
         return chat.Empty()
 ```
@@ -59,21 +59,21 @@ port = 11912
 class Client:
 
     def __init__(self, u: str, window):
-        # the frame to put ui components on
+        # o quadro para colocar os componentes da interface do usuário
         self.window = window
         self.username = u
-        # create a gRPC channel + stub
+        # criar um canal gRPC + stub
         channel = grpc.insecure_channel(address + ':' + str(port))
         self.conn = rpc.ChatServerStub(channel)
-        # create new listening thread for when new message streams come in
+        # crie um novo thread de escuta para quando novos fluxos de mensagens chegarem
         threading.Thread(target=self.__listen_for_messages, daemon=True).start()
         self.__setup_ui()
         self.window.mainloop()
 
     def __listen_for_messages(self):
         """
-        This method will be ran in a separate thread as the main/ui thread, because the for-in call is blocking
-        when waiting for new messages
+        Este método será executado em um encadeamento separado como o encadeamento principal/ui, porque a chamada for-in está bloqueando
+        ao aguardar novas mensagens
         """
         for note in self.conn.ChatStream(chat.Empty()):
             print("R[{}] {}".format(note.name, note.message))
@@ -81,7 +81,7 @@ class Client:
 
     def send_message(self, event):
         """
-        This method is called when user enters something into the textbox
+        Este método é chamado quando o usuário digita algo na caixa de texto
         """
         message = self.entry_message.get()
         if message is not '':
@@ -103,14 +103,14 @@ package grpc;
 
 message Empty {}
 
-// I called it Note because message Message is annoying to work with
+// Eu chamei de Nota porque a mensagem Mensagem é chata de se trabalhar
 message Note {
     string name = 1;
     string message = 2;
 }
 
 service ChatServer {
-    // This bi-directional stream makes it possible to send and receive Notes between 2 persons
+    // Este fluxo bidirecional permite enviar e receber Notas entre 2 pessoas
     rpc ChatStream (Empty) returns (stream Note);
     rpc SendNote (Note) returns (Empty);
 }
