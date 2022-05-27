@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package grpc;
+
+message Empty {}
+
+// Eu chamei de Nota porque a mensagem Mensagem parece complicada
+message Note {
+    string name = 1;
+    string message = 2;
+}
+
+service ChatServer {
+    // Este fluxo bidirecional permite enviar e receber Notas entre 2 pessoas
+    rpc ChatStream (Empty) returns (stream Note);
+    rpc SendNote (Note) returns (Empty);
+}
